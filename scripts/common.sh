@@ -80,6 +80,15 @@ download() {
 
 CTX_SIZE_DEFAULT=0
 
+# llama.cpp -ngl: Intel macOS CPU builds use 0; Apple Silicon / CUDA use GPU offload.
+bonsai_llama_ngl() {
+    if [ "$(uname -s)" = "Darwin" ] && [ "$(uname -m)" = "x86_64" ]; then
+        echo 0
+    else
+        echo 99
+    fi
+}
+
 get_context_size_fallback() {
     if [ "$(uname -s)" = "Darwin" ]; then
         _mem_gb=$(( $(sysctl -n hw.memsize) / 1073741824 ))

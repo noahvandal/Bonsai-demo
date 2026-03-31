@@ -15,10 +15,32 @@ BASE_URL="https://github.com/PrismML-Eng/llama.cpp/releases/download/$RELEASE_TA
 
 OS="$(uname -s)"
 
+# True if llama-cli in this dir runs on the host (catches arm64 bin on Intel Mac, etc.).
+_binaries_usable() {
+    _dir="$1"
+    [ -x "$_dir/llama-cli" ] || return 1
+    if "$_dir/llama-cli" --version >/dev/null 2>&1; then
+        return 0
+    fi
+    "$_dir/llama-cli" --help >/dev/null 2>&1
+}
+
 case "$OS" in
     Darwin)
-        ASSET="llama-${RELEASE_TAG}-bin-macos-arm64.tar.gz"
         DEST="bin/mac"
+        MAC_ARCH="$(uname -m)"
+        case "$MAC_ARCH" in
+            arm64)
+                ASSET="llama-${RELEASE_TAG}-bin-macos-arm64.tar.gz"
+                ;;
+            x86_64)
+                ASSET=""
+                ;;
+            *)
+                err "Unsupported Mac architecture: $MAC_ARCH"
+                exit 1
+                ;;
+        esac
         ;;
     Linux)
         # Detect CUDA version
@@ -64,12 +86,26 @@ case "$OS" in
         ;;
 esac
 
-URL="$BASE_URL/$ASSET"
-
 if [ -d "$DEST" ] && ls "$DEST"/llama-* >/dev/null 2>&1; then
-    info "Binaries already present in $DEST/"
-    exit 0
+    if _binaries_usable "$DEST"; then
+        info "Binaries already present in $DEST/"
+        exit 0
+    fi
+    warn "Existing binaries in $DEST/ do not run on this Mac ($(uname -m)) — removing."
+    rm -rf "$DEST"
 fi
+
+# Intel macOS: Prism releases only ship arm64; must build from source.
+if [ "$OS" = "Darwin" ] && [ -z "$ASSET" ]; then
+    echo ""
+    err "No pre-built Prism llama.cpp for Intel macOS (releases are Apple Silicon only)."
+    echo "  Build for x86_64 CPU:"
+    echo "    ./scripts/build_mac.sh"
+    echo ""
+    exit 1
+fi
+
+URL="$BASE_URL/$ASSET"
 
 step "Downloading $ASSET ..."
 echo "  From: $URL"

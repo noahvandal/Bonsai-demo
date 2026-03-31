@@ -40,6 +40,8 @@ fi
 BIN_DIR="$(cd "$(dirname "$BIN")" && pwd)"
 export LD_LIBRARY_PATH="$BIN_DIR${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
+NGL=$(bonsai_llama_ngl)
+
 echo ""
 echo "=== llama.cpp server (GGUF) ==="
 echo "  Model:   $(basename "$MODEL")"
@@ -51,7 +53,7 @@ echo "  API:  http://localhost:$PORT/v1/chat/completions"
 echo "  Press Ctrl+C to stop."
 echo ""
 
-exec "$BIN" -m "$MODEL" --host "$HOST" --port "$PORT" -ngl 99 -c "$CTX_SIZE_DEFAULT" \
+exec "$BIN" -m "$MODEL" --host "$HOST" --port "$PORT" -ngl "$NGL" -c "$CTX_SIZE_DEFAULT" \
     --temp 0.5 --top-p 0.85 --top-k 20 --min-p 0 \
     --reasoning-budget 0 --reasoning-format none \
     --chat-template-kwargs '{"enable_thinking": false}' \
