@@ -246,8 +246,15 @@ else
 fi
 
 # ────────────────────────────────────────────────────
-#  7. llama.cpp pre-built binaries
+#  7. llama.cpp pre-built binaries (or Intel Mac: build from source)
 # ────────────────────────────────────────────────────
+if [ "$OS" = "Darwin" ] && [ -x bin/mac/llama-cli ]; then
+    if ! bin/mac/llama-cli --version >/dev/null 2>&1 && ! bin/mac/llama-cli --help >/dev/null 2>&1; then
+        warn "bin/mac/llama-cli does not run on this Mac — removing (wrong CPU arch?)."
+        rm -rf bin/mac
+    fi
+fi
+
 _has_binaries=false
 for _d in bin/mac bin/cuda; do
     ls "$_d"/llama-* >/dev/null 2>&1 && _has_binaries=true && break
@@ -255,6 +262,9 @@ done
 
 if [ "$_has_binaries" = true ]; then
     info "llama.cpp binaries already present."
+elif [ "$OS" = "Darwin" ] && [ "$ARCH" = "x86_64" ]; then
+    step "Intel macOS: building llama.cpp from source (GitHub releases are Apple Silicon only; ~few min) ..."
+    sh "$SCRIPT_DIR/scripts/build_mac.sh"
 else
     sh "$SCRIPT_DIR/scripts/download_binaries.sh"
 fi
