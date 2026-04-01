@@ -91,7 +91,7 @@ if [ -d "$DEST" ] && ls "$DEST"/llama-* >/dev/null 2>&1; then
         info "Binaries already present in $DEST/"
         exit 0
     fi
-    warn "Existing binaries in $DEST/ do not run on this Mac ($(uname -m)) — removing."
+    warn "Existing binaries in $DEST/ are not usable on this host (OS=$(uname -s), arch=$(uname -m)) — removing."
     rm -rf "$DEST"
 fi
 
