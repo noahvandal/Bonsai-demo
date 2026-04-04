@@ -19,10 +19,10 @@ OS="$(uname -s)"
 _binaries_usable() {
     _dir="$1"
     [ -x "$_dir/llama-cli" ] || return 1
-    if "$_dir/llama-cli" --version >/dev/null 2>&1; then
+    if LD_LIBRARY_PATH="$_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" "$_dir/llama-cli" --version >/dev/null 2>&1; then
         return 0
     fi
-    "$_dir/llama-cli" --help >/dev/null 2>&1
+    LD_LIBRARY_PATH="$_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" "$_dir/llama-cli" --help >/dev/null 2>&1
 }
 
 case "$OS" in
